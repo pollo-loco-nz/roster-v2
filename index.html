@@ -10,7 +10,7 @@
         h1 { text-align: center; color: #4f46e5; margin-top: 0; font-style: italic; }
         select, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; }
         button { background: #4f46e5; color: white; border: none; cursor: pointer; }
-        .gen-btn { background: #10b981; margin-top: 20px; font-size: 18px; }
+        .gen-btn { background: #10b981; margin-top: 10px; font-size: 18px; }
         .day-box { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .day-title { color: #4f46e5; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; font-weight: bold; }
         .chore-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 8px; margin-bottom: 8px; }
@@ -19,10 +19,11 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 10px; overflow: hidden; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #4f46e5; color: white; }
-        .day-head { background: #f8fafc; font-weight: bold; text-align: center; color: #64748b; font-size: 12px; }
+        .day-head { background: #f8fafc; font-weight: bold; text-align: center; color: #64748b; font-size: 11px; padding: 15px 5px; }
+        .date-sub { display: block; font-size: 16px; color: #4f46e5; margin-top: 4px; font-weight: 900; letter-spacing: 1px; }
     </style>
 </head>
-<body>
+<body onload="initDates()">
 
     <div class="card">
         <h1>CHORE-O-MATIC</h1>
@@ -45,7 +46,13 @@
             <button onclick="saveData()">SAVE PREFERENCES</button>
         </div>
 
-        <button class="gen-btn" onclick="generate()">GENERATE WEEKLY ROSTER</button>
+        <hr style="margin: 30px 0; border: 0; border-top: 2px dashed #eee;">
+
+        <label><b>3. Generate Roster</b></label>
+        <select id="weekSelect">
+            </select>
+        <button class="gen-btn" onclick="generate()">GENERATE ROSTER</button>
+        
         <div id="result"></div>
         
         <p style="text-align:center; font-size: 10px; color: #999; margin-top: 30px; cursor: pointer;" onclick="if(confirm('Reset all?')) { localStorage.clear(); location.reload(); }">RESET ALL FAMILY DATA</p>
@@ -55,6 +62,21 @@
     const users = ["Nathan", "Sam", "Hannah", "Emily"];
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const dinnerChores = ["Pre-dinner", "Cook", "Post-dinner"];
+    const VERSION = "v7";
+
+    function initDates() {
+        const select = document.getElementById('weekSelect');
+        let d = new Date();
+        d.setDate(d.getDate() + (1 - d.getDay() + 7) % 7); // Find next Monday
+        
+        for (let i = 0; i < 4; i++) {
+            let dateStr = d.toLocaleDateString('en-NZ', { day: '2-digit', month: 'short' }).replace(' ', '-');
+            let iso = d.toISOString().split('T')[0];
+            let option = new Option(`Week starting Mon ${dateStr}`, iso);
+            select.add(option);
+            d.setDate(d.getDate() + 7);
+        }
+    }
 
     function getChores(day) {
         if (day === "Saturday") return ["Pre-dinner", "Cook", "Post-dinner", "Vacuum Upstairs", "Vacuum Downstairs", "Bathroom"];
@@ -69,7 +91,7 @@
         section.style.display = 'block';
         list.innerHTML = '';
 
-        const saved = JSON.parse(localStorage.getItem('v5_' + user)) || null;
+        const saved = JSON.parse(localStorage.getItem(VERSION + '_' + user)) || null;
 
         days.forEach(day => {
             const dayDiv = document.createElement('div');
@@ -108,23 +130,24 @@
     function saveData() {
         const user = document.getElementById('userSelect').value;
         const checked = Array.from(document.querySelectorAll('.c-box:checked')).map(b => b.value);
-        localStorage.setItem('v5_' + user, JSON.stringify(checked));
-        alert("Saved! Preferences locked in.");
+        localStorage.setItem(VERSION + '_' + user, JSON.stringify(checked));
+        alert("Saved! Ready for the next person.");
         window.scrollTo(0,0);
     }
 
     function isOk(p, d, c) {
-        const data = JSON.parse(localStorage.getItem('v5_' + p));
+        const data = JSON.parse(localStorage.getItem(VERSION + '_' + p));
         if (data === null) return true;
         return data.includes(d + '-' + c);
     }
 
     function generate() {
+        const startDate = new Date(document.getElementById('weekSelect').value);
         let tally = { Nathan:0, Sam:0, Hannah:0, Emily:0 };
         let cooks = {};
         let monThu = ["Monday", "Tuesday", "Wednesday", "Thursday"];
         
-        // --- 1. PRE-ASSIGN COOKS ---
+        // --- 1. COOKING RULES ---
         let sDay = monThu.find(d => isOk("Sam", d, "Cook"));
         if (sDay) cooks[sDay] = "Sam";
         let hDay = monThu.find(d => isOk("Hannah", d, "Cook") && d !== sDay);
@@ -133,16 +156,21 @@
 
         let nOut = days.filter(d => cooks[d] === "Nathan" && !isOk("Nathan", d, "Cook")).length;
 
-        // --- 2. BUILD TABLE ---
+        // --- 2. GENERATE TABLE ---
         let html = '<table><tr><th>Job</th><th>Who</th></tr>';
         
-        days.forEach(day => {
-            html += `<tr><td colspan="2" class="day-head">${day.toUpperCase()}</td></tr>`;
+        days.forEach((day, index) => {
+            let currentDayDate = new Date(startDate);
+            currentDayDate.setDate(startDate.getDate() + index);
             
-            // Track who is doing dinner chores today
+            // Format: DD-MMM (e.g., 09-Feb)
+            let dayPart = currentDayDate.getDate().toString().padStart(2, '0');
+            let monthPart = currentDayDate.toLocaleString('en-NZ', { month: 'short' });
+            let dateFormatted = `${dayPart}-${monthPart}`.toUpperCase();
+
+            html += `<tr><td colspan="2" class="day-head">${day.toUpperCase()} <span class="date-sub">${dateFormatted}</span></td></tr>`;
+            
             let dinnerAssignedToday = [];
-            
-            // Handle the "Cook" first as it's the priority chore
             let chef = cooks[day];
             let actualChef = "UNASSIGNED";
             
@@ -150,7 +178,7 @@
                 actualChef = "TAKEOUT! 🍕";
             } else if (isOk(chef, day, "Cook")) {
                 actualChef = chef;
-                dinnerAssignedToday.push(chef); // Disqualify chef from other dinner jobs
+                dinnerAssignedToday.push(chef);
             } else {
                 actualChef = users.find(u => isOk(u, day, "Cook")) || "TAKEOUT! 🍕";
                 if (actualChef !== "TAKEOUT! 🍕") dinnerAssignedToday.push(actualChef);
@@ -163,26 +191,14 @@
                     p = actualChef;
                 } else {
                     let avail = users.filter(u => isOk(u, day, chore));
-
-                    // Rule: One dinner chore per person per day
-                    if (dinnerChores.includes(chore)) {
-                        avail = avail.filter(u => !dinnerAssignedToday.includes(u));
-                    }
-
-                    // Rule: Only Hannah & Sam for Vacuum Downstairs
-                    if (chore === "Vacuum Downstairs") {
-                        avail = avail.filter(u => u === "Hannah" || u === "Sam");
-                    }
-                    // Rule: Only Nathan for Vacuum Upstairs
-                    if (chore === "Vacuum Upstairs") {
-                        avail = avail.filter(u => u === "Nathan");
-                    }
+                    if (dinnerChores.includes(chore)) avail = avail.filter(u => !dinnerAssignedToday.includes(u));
+                    if (chore === "Vacuum Downstairs") avail = avail.filter(u => u === "Hannah" || u === "Sam");
+                    if (chore === "Vacuum Upstairs") avail = avail.filter(u => u === "Nathan");
 
                     if (avail.length > 0) {
                         avail.sort((a,b) => tally[a] - tally[b]);
                         p = avail[0];
                         tally[p]++;
-                        // If this was a dinner chore, mark them as assigned
                         if (dinnerChores.includes(chore)) dinnerAssignedToday.push(p);
                     }
                 }
