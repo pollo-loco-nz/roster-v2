@@ -5,55 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Chore Roster</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chore-card { transition: all 0.2s; border: 2px solid #f3f4f6; }
+        .chore-card:has(input:checked) { border-color: #6366f1; background-color: #f5f3ff; }
+    </style>
 </head>
-<body class="bg-gray-100 p-4 font-sans text-gray-900">
+<body class="bg-slate-50 p-4 font-sans text-slate-900">
 
-    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden p-6 border border-gray-200">
-        <h1 class="text-3xl font-extrabold text-center mb-2 text-indigo-600">🏠 House Hub</h1>
-        <p class="text-center text-gray-500 text-sm mb-8">Weekly Roster Generator</p>
-
-        <div class="mb-6">
-            <label class="block text-sm font-bold mb-2 uppercase tracking-wide text-gray-600">Who is checking in?</label>
-            <select id="userSelect" class="w-full border-2 border-gray-200 p-3 rounded-xl bg-gray-50 focus:border-indigo-400 outline-none transition" onchange="loadAvailability()">
-                <option value="">Select your name...</option>
-                <option value="Nathan">Nathan</option>
-                <option value="Sam">Sam</option>
-                <option value="Hannah">Hannah</option>
-                <option value="Emily">Emily</option>
-            </select>
+    <div class="max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+        <div class="bg-indigo-600 p-6 text-center text-white">
+            <h1 class="text-3xl font-black italic tracking-tighter">CHORE-O-MATIC</h1>
+            <p class="text-indigo-100 text-xs uppercase tracking-widest mt-1">Nathan • Sam • Hannah • Emily</p>
         </div>
 
-        <div id="availabilitySection" class="hidden animate-in fade-in duration-500">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-bold text-gray-700">Your Availability</h2>
-                <button onclick="setAllUnavailable()" class="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-tighter border border-red-200 px-2 py-1 rounded">Fully Unavailable</button>
+        <div class="p-6">
+            <div class="mb-8">
+                <label class="block text-xs font-bold mb-2 uppercase text-slate-400">Identify Yourself</label>
+                <select id="userSelect" class="w-full border-2 border-slate-100 p-4 rounded-2xl bg-slate-50 focus:border-indigo-500 outline-none transition appearance-none font-bold text-lg" onchange="loadAvailability()">
+                    <option value="">Select Name...</option>
+                    <option value="Nathan">Nathan</option>
+                    <option value="Sam">Sam</option>
+                    <option value="Hannah">Hannah</option>
+                    <option value="Emily">Emily</option>
+                </select>
             </div>
-            
-            <div class="grid grid-cols-2 gap-3 mb-6" id="daysGrid">
+
+            <div id="availabilitySection" class="hidden animate-in slide-in-from-bottom-4 duration-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-black text-xl text-slate-700">Your Tasks</h2>
+                    <button onclick="setAll(false)" class="text-[10px] font-bold bg-red-50 text-red-500 px-3 py-1 rounded-full uppercase border border-red-100">Fully Unavailable</button>
                 </div>
-            
-            <button onclick="saveAvailability()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-700 active:scale-95 transition">Save & Confirm</button>
-        </div>
-
-        <hr class="my-10 border-gray-100">
-
-        <div class="text-center">
-            <button onclick="generateRoster()" class="w-full bg-emerald-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-emerald-600 active:scale-95 transition mb-4">✨ Generate New Roster</button>
-            <button onclick="clearAllData()" class="text-xs text-gray-400 underline uppercase tracking-widest">Reset All Data for New Week</button>
-        </div>
-
-        <div id="rosterResult" class="mt-10 hidden">
-            <div class="bg-white rounded-xl shadow-2xl border-2 border-emerald-100 overflow-hidden" id="screenshotZone">
-                <div class="bg-emerald-500 p-4 text-white text-center">
-                    <h2 class="font-bold text-xl">Official Weekly Roster</h2>
-                    <p class="text-emerald-100 text-xs uppercase tracking-widest">Nathan Weekend Cooking Rule Applied</p>
-                </div>
-                <table class="w-full text-sm">
-                    <tbody id="rosterBody" class="divide-y divide-gray-100">
-                        </tbody>
-                </table>
+                
+                <div id="choreChecklist" class="space-y-6 max-h-[400px] overflow-y-auto pr-2 mb-6">
+                    </div>
+                
+                <button onclick="saveAvailability()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-indigo-700 active:scale-95 transition sticky bottom-0">SAVE PREFERENCES</button>
             </div>
-            <p class="text-center mt-6 text-gray-400 text-sm animate-pulse">📸 Screenshot this for the family group chat!</p>
+
+            <hr class="my-10 border-slate-100">
+
+            <div class="space-y-4">
+                <button onclick="generateRoster()" class="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-xl shadow-lg hover:bg-emerald-600 active:scale-95 transition">GENERATE ROSTER</button>
+                <button onclick="clearAllData()" class="w-full text-slate-300 text-[10px] font-bold uppercase tracking-widest hover:text-red-400 transition">Reset All Family Data</button>
+            </div>
+
+            <div id="rosterResult" class="mt-10 hidden">
+                <div class="bg-white rounded-2xl shadow-2xl border-4 border-emerald-500 overflow-hidden" id="screenshotZone">
+                    <div class="bg-emerald-500 p-4 text-white text-center">
+                        <h2 class="font-black text-2xl uppercase italic">The Official List</h2>
+                        <p class="text-emerald-100 text-[10px] font-bold uppercase tracking-widest">Rules: Nathan cooks weekends • Fairness logic applied</p>
+                    </div>
+                    <table class="w-full text-sm">
+                        <tbody id="rosterBody" class="divide-y divide-slate-100">
+                            </tbody>
+                    </table>
+                </div>
+                <p class="text-center mt-6 text-slate-400 text-xs font-bold animate-bounce uppercase">📸 Screenshot and Share!</p>
+            </div>
         </div>
     </div>
 
@@ -64,19 +72,29 @@
         const weekdayChores = ["Pre-dinner", "Cook", "Post-dinner"];
         const weekendChores = ["Pre-dinner", "Cook", "Post-dinner", "Vacuum", "Bathroom"];
 
-        // Initialize checkboxes (All ON by default)
-        const grid = document.getElementById('daysGrid');
+        // Build the complex checklist UI
+        const checklistContainer = document.getElementById('choreChecklist');
         days.forEach(day => {
-            grid.innerHTML += `
-                <label class="flex items-center space-x-3 p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:bg-indigo-50 transition has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
-                    <input type="checkbox" value="${day}" class="day-check w-6 h-6 rounded text-indigo-600 focus:ring-indigo-500" checked>
-                    <span class="font-medium text-gray-700">${day}</span>
-                </label>
-            `;
+            const isWeekend = (day === "Saturday" || day === "Sunday");
+            const chores = isWeekend ? weekendChores : weekdayChores;
+            
+            let dayHtml = `<div class="day-group"><h3 class="font-bold text-indigo-400 text-xs uppercase mb-2 ml-1">${day}</h3><div class="grid grid-cols-1 gap-2">`;
+            
+            chores.forEach(chore => {
+                const uniqueId = `${day}-${chore}`;
+                dayHtml += `
+                    <label class="chore-card flex items-center justify-between p-3 rounded-xl cursor-pointer">
+                        <span class="text-sm font-bold text-slate-600">${chore}</span>
+                        <input type="checkbox" value="${uniqueId}" class="chore-check w-6 h-6 rounded-lg text-indigo-600 border-slate-200 focus:ring-indigo-500" checked>
+                    </label>
+                `;
+            });
+            dayHtml += `</div></div>`;
+            checklistContainer.innerHTML += dayHtml;
         });
 
-        function setAllUnavailable() {
-            document.querySelectorAll('.day-check').forEach(c => c.checked = false);
+        function setAll(status) {
+            document.querySelectorAll('.chore-check').forEach(c => c.checked = status);
         }
 
         function loadAvailability() {
@@ -87,27 +105,26 @@
             }
             document.getElementById('availabilitySection').classList.remove('hidden');
             
-            // Load from LocalStorage - if no data exists, keep them all checked (default)
             const stored = localStorage.getItem(`avail_${user}`);
             if (stored !== null) {
-                const checkedDays = JSON.parse(stored);
-                document.querySelectorAll('.day-check').forEach(c => {
-                    c.checked = checkedDays.includes(c.value);
+                const checkedItems = JSON.parse(stored);
+                document.querySelectorAll('.chore-check').forEach(c => {
+                    c.checked = checkedItems.includes(c.value);
                 });
             } else {
-                document.querySelectorAll('.day-check').forEach(c => c.checked = true);
+                setAll(true); // Default to all on
             }
         }
 
         function saveAvailability() {
             const user = document.getElementById('userSelect').value;
-            const checkedDays = Array.from(document.querySelectorAll('.day-check:checked')).map(c => c.value);
-            localStorage.setItem(`avail_${user}`, JSON.stringify(checkedDays));
-            alert(`Thanks ${user}! Your availability is saved.`);
+            const checkedItems = Array.from(document.querySelectorAll('.chore-check:checked')).map(c => c.value);
+            localStorage.setItem(`avail_${user}`, JSON.stringify(checkedItems));
+            alert(`Sweet as! ${user}'s jobs are saved.`);
         }
 
         function clearAllData() {
-            if(confirm("Are you sure? This wipes everyone's availability for a fresh week.")) {
+            if(confirm("Wipe everything? You'll have to enter availability again.")) {
                 people.forEach(p => localStorage.removeItem(`avail_${p}`));
                 location.reload();
             }
@@ -124,40 +141,39 @@
                 const isWeekend = (day === "Saturday" || day === "Sunday");
                 const choresForDay = isWeekend ? weekendChores : weekdayChores;
 
-                // Add a "Day Header"
                 rosterBody.innerHTML += `
-                    <tr class="bg-gray-50">
-                        <td colspan="2" class="p-2 text-center font-black text-gray-400 uppercase text-xs tracking-widest border-y border-gray-200">${day}</td>
+                    <tr class="bg-slate-50">
+                        <td colspan="2" class="p-2 text-center font-black text-slate-300 uppercase text-[10px] tracking-[0.2em] border-y border-slate-100">${day}</td>
                     </tr>
                 `;
 
                 choresForDay.forEach(chore => {
-                    let assignedPerson = "N/A";
+                    let assignedPerson = "UNASSIGNED ⚠️";
+                    const choreId = `${day}-${chore}`;
 
                     // RULE: Nathan cooks weekends
                     if (isWeekend && chore === "Cook") {
                         assignedPerson = "Nathan";
                     } else {
-                        // Find people who are available today
-                        let availableToday = people.filter(p => {
-                            const userDays = JSON.parse(localStorage.getItem(`avail_${p}`)) || [];
-                            // Special case: If user never saved, assume they are available
-                            if (localStorage.getItem(`avail_${p}`) === null) return true;
-                            return userDays.includes(day);
+                        // Find people who are available for THIS SPECIFIC CHORE
+                        let availablePeople = people.filter(p => {
+                            const userPrefs = localStorage.getItem(`avail_${p}`);
+                            if (userPrefs === null) return true; // Default to available
+                            const items = JSON.parse(userPrefs);
+                            return items.includes(choreId);
                         });
 
-                        if (availableToday.length > 0) {
-                            // Sort by tally to keep it fair (least chores first)
-                            availableToday.sort((a, b) => tally[a] - tally[b]);
-                            assignedPerson = availableToday[0];
+                        if (availablePeople.length > 0) {
+                            availablePeople.sort((a, b) => tally[a] - tally[b]);
+                            assignedPerson = availablePeople[0];
                             tally[assignedPerson]++;
                         }
                     }
 
                     rosterBody.innerHTML += `
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="p-4 font-semibold text-gray-500 border-r w-1/2">${chore}</td>
-                            <td class="p-4 text-lg font-bold text-indigo-700">${assignedPerson}</td>
+                        <tr class="hover:bg-indigo-50 transition">
+                            <td class="p-4 font-bold text-slate-400 border-r w-1/2 text-xs uppercase">${chore}</td>
+                            <td class="p-4 text-lg font-black text-indigo-900 italic">${assignedPerson}</td>
                         </tr>
                     `;
                 });
