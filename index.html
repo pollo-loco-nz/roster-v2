@@ -6,67 +6,78 @@
     <title>Family Chore Roster</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 p-4 font-sans text-gray-900">
+<body class="bg-gray-100 p-4 font-sans text-gray-900">
 
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
-        <h1 class="text-2xl font-bold text-center mb-6 text-blue-600">🏠 Chore Roster Pro</h1>
+    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden p-6 border border-gray-200">
+        <h1 class="text-3xl font-extrabold text-center mb-2 text-indigo-600">🏠 House Hub</h1>
+        <p class="text-center text-gray-500 text-sm mb-8">Weekly Roster Generator</p>
 
         <div class="mb-6">
-            <label class="block text-sm font-medium mb-2">Who are you?</label>
-            <select id="userSelect" class="w-full border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none" onchange="loadAvailability()">
+            <label class="block text-sm font-bold mb-2 uppercase tracking-wide text-gray-600">Who is checking in?</label>
+            <select id="userSelect" class="w-full border-2 border-gray-200 p-3 rounded-xl bg-gray-50 focus:border-indigo-400 outline-none transition" onchange="loadAvailability()">
                 <option value="">Select your name...</option>
                 <option value="Nathan">Nathan</option>
-                <option value="Kid1">Kid 1</option>
-                <option value="Kid2">Kid 2</option>
-                <option value="Kid3">Kid 3</option>
+                <option value="Sam">Sam</option>
+                <option value="Hannah">Hannah</option>
+                <option value="Emily">Emily</option>
             </select>
         </div>
 
-        <div id="availabilitySection" class="hidden">
-            <h2 class="font-semibold mb-3">Which days can you help next week?</h2>
-            <div class="grid grid-cols-2 gap-2 mb-6" id="daysGrid">
+        <div id="availabilitySection" class="hidden animate-in fade-in duration-500">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-gray-700">Your Availability</h2>
+                <button onclick="setAllUnavailable()" class="text-xs font-bold text-red-500 hover:text-red-700 uppercase tracking-tighter border border-red-200 px-2 py-1 rounded">Fully Unavailable</button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-6" id="daysGrid">
                 </div>
-            <button onclick="saveAvailability()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow hover:bg-blue-700 transition">Save My Availability</button>
+            
+            <button onclick="saveAvailability()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-700 active:scale-95 transition">Save & Confirm</button>
         </div>
 
-        <hr class="my-8">
+        <hr class="my-10 border-gray-100">
 
         <div class="text-center">
-            <button onclick="generateRoster()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-green-700 transition mb-4">✨ Generate Weekly Roster</button>
-            <p class="text-xs text-gray-400 italic">Rule applied: Nathan cooks on weekends!</p>
+            <button onclick="generateRoster()" class="w-full bg-emerald-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-emerald-600 active:scale-95 transition mb-4">✨ Generate New Roster</button>
+            <button onclick="clearAllData()" class="text-xs text-gray-400 underline uppercase tracking-widest">Reset All Data for New Week</button>
         </div>
 
-        <div id="rosterResult" class="mt-8 hidden">
-            <div class="border-2 border-green-200 rounded-lg overflow-hidden bg-white" id="screenshotZone">
-                <table class="w-full text-left">
-                    <thead class="bg-green-500 text-white">
-                        <tr>
-                            <th class="p-3">Day</th>
-                            <th class="p-3">Chore/Cook</th>
-                        </tr>
-                    </thead>
+        <div id="rosterResult" class="mt-10 hidden">
+            <div class="bg-white rounded-xl shadow-2xl border-2 border-emerald-100 overflow-hidden" id="screenshotZone">
+                <div class="bg-emerald-500 p-4 text-white text-center">
+                    <h2 class="font-bold text-xl">Official Weekly Roster</h2>
+                    <p class="text-emerald-100 text-xs uppercase tracking-widest">Nathan Weekend Cooking Rule Applied</p>
+                </div>
+                <table class="w-full text-sm">
                     <tbody id="rosterBody" class="divide-y divide-gray-100">
                         </tbody>
                 </table>
             </div>
-            <p class="text-center mt-4 text-sm text-gray-500">📸 Take a screenshot of the table above!</p>
+            <p class="text-center mt-6 text-gray-400 text-sm animate-pulse">📸 Screenshot this for the family group chat!</p>
         </div>
     </div>
 
     <script>
-        const people = ["Nathan", "Kid1", "Kid2", "Kid3"]; // EDIT NAMES HERE
+        const people = ["Nathan", "Sam", "Hannah", "Emily"];
         const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        
+        const weekdayChores = ["Pre-dinner", "Cook", "Post-dinner"];
+        const weekendChores = ["Pre-dinner", "Cook", "Post-dinner", "Vacuum", "Bathroom"];
 
-        // Initialize checkboxes
+        // Initialize checkboxes (All ON by default)
         const grid = document.getElementById('daysGrid');
         days.forEach(day => {
             grid.innerHTML += `
-                <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input type="checkbox" value="${day}" class="day-check w-5 h-5 text-blue-600">
-                    <span>${day}</span>
+                <label class="flex items-center space-x-3 p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:bg-indigo-50 transition has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+                    <input type="checkbox" value="${day}" class="day-check w-6 h-6 rounded text-indigo-600 focus:ring-indigo-500" checked>
+                    <span class="font-medium text-gray-700">${day}</span>
                 </label>
             `;
         });
+
+        function setAllUnavailable() {
+            document.querySelectorAll('.day-check').forEach(c => c.checked = false);
+        }
 
         function loadAvailability() {
             const user = document.getElementById('userSelect').value;
@@ -76,61 +87,84 @@
             }
             document.getElementById('availabilitySection').classList.remove('hidden');
             
-            // Clear checks
-            document.querySelectorAll('.day-check').forEach(c => c.checked = false);
-            
-            // Load from LocalStorage
-            const stored = JSON.parse(localStorage.getItem(`avail_${user}`)) || [];
-            document.querySelectorAll('.day-check').forEach(c => {
-                if (stored.includes(c.value)) c.checked = true;
-            });
+            // Load from LocalStorage - if no data exists, keep them all checked (default)
+            const stored = localStorage.getItem(`avail_${user}`);
+            if (stored !== null) {
+                const checkedDays = JSON.parse(stored);
+                document.querySelectorAll('.day-check').forEach(c => {
+                    c.checked = checkedDays.includes(c.value);
+                });
+            } else {
+                document.querySelectorAll('.day-check').forEach(c => c.checked = true);
+            }
         }
 
         function saveAvailability() {
             const user = document.getElementById('userSelect').value;
             const checkedDays = Array.from(document.querySelectorAll('.day-check:checked')).map(c => c.value);
             localStorage.setItem(`avail_${user}`, JSON.stringify(checkedDays));
-            alert("Saved! Tell the next person to enter their days.");
+            alert(`Thanks ${user}! Your availability is saved.`);
+        }
+
+        function clearAllData() {
+            if(confirm("Are you sure? This wipes everyone's availability for a fresh week.")) {
+                people.forEach(p => localStorage.removeItem(`avail_${p}`));
+                location.reload();
+            }
         }
 
         function generateRoster() {
             const rosterBody = document.getElementById('rosterBody');
             rosterBody.innerHTML = '';
             
-            // Track how many chores each kid has to keep it fair
             let tally = {};
             people.forEach(p => tally[p] = 0);
 
             days.forEach(day => {
-                let assignedPerson = "No one available";
+                const isWeekend = (day === "Saturday" || day === "Sunday");
+                const choresForDay = isWeekend ? weekendChores : weekdayChores;
 
-                // RULE: Nathan cooks weekends
-                if (day === "Saturday" || day === "Sunday") {
-                    assignedPerson = "Nathan";
-                } else {
-                    // Filter people who are available today
-                    let availableToday = people.filter(p => {
-                        const days = JSON.parse(localStorage.getItem(`avail_${p}`)) || [];
-                        return days.includes(day);
-                    });
-
-                    if (availableToday.length > 0) {
-                        // Pick person with lowest tally to keep it fair
-                        availableToday.sort((a, b) => tally[a] - tally[b]);
-                        assignedPerson = availableToday[0];
-                        tally[assignedPerson]++;
-                    }
-                }
-
+                // Add a "Day Header"
                 rosterBody.innerHTML += `
-                    <tr>
-                        <td class="p-3 font-bold text-gray-600 border-r bg-gray-50 w-1/3">${day}</td>
-                        <td class="p-3 text-lg">${assignedPerson}</td>
+                    <tr class="bg-gray-50">
+                        <td colspan="2" class="p-2 text-center font-black text-gray-400 uppercase text-xs tracking-widest border-y border-gray-200">${day}</td>
                     </tr>
                 `;
+
+                choresForDay.forEach(chore => {
+                    let assignedPerson = "N/A";
+
+                    // RULE: Nathan cooks weekends
+                    if (isWeekend && chore === "Cook") {
+                        assignedPerson = "Nathan";
+                    } else {
+                        // Find people who are available today
+                        let availableToday = people.filter(p => {
+                            const userDays = JSON.parse(localStorage.getItem(`avail_${p}`)) || [];
+                            // Special case: If user never saved, assume they are available
+                            if (localStorage.getItem(`avail_${p}`) === null) return true;
+                            return userDays.includes(day);
+                        });
+
+                        if (availableToday.length > 0) {
+                            // Sort by tally to keep it fair (least chores first)
+                            availableToday.sort((a, b) => tally[a] - tally[b]);
+                            assignedPerson = availableToday[0];
+                            tally[assignedPerson]++;
+                        }
+                    }
+
+                    rosterBody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="p-4 font-semibold text-gray-500 border-r w-1/2">${chore}</td>
+                            <td class="p-4 text-lg font-bold text-indigo-700">${assignedPerson}</td>
+                        </tr>
+                    `;
+                });
             });
 
             document.getElementById('rosterResult').classList.remove('hidden');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
     </script>
 </body>
