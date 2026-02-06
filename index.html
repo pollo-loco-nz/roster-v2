@@ -12,7 +12,7 @@
         button { background: #4f46e5; color: white; border: none; cursor: pointer; }
         .gen-btn { background: #10b981; margin-top: 20px; font-size: 18px; }
         .day-box { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .day-title { color: #4f46e5; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .day-title { color: #4f46e5; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; font-weight: bold; }
         .chore-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 8px; margin-bottom: 8px; }
         .chore-row.active { border-color: #4f46e5; background: #f5f3ff; }
         input[type="checkbox"] { width: 22px; height: 22px; }
@@ -25,9 +25,9 @@
 <body>
 
     <div class="card">
-        <h1>CHORE-O-MATIC</h1>
+        <h1 style="font-style: italic;">CHORE-O-MATIC</h1>
         
-        <label><b>1. Who are you?</b></label>
+        <label><b>1. Who is entering data?</b></label>
         <select id="userSelect" onchange="renderAvailability()">
             <option value="">-- Select Name --</option>
             <option value="Nathan">Nathan</option>
@@ -38,17 +38,17 @@
 
         <div id="availSection" style="display:none;">
             <div style="display:flex; justify-content: space-between; align-items: center;">
-                <h3>2. Your Availability</h3>
+                <h3>2. Availability</h3>
                 <button onclick="setAll(false)" style="width:auto; padding: 5px 10px; font-size: 10px; background: #ef4444;">NONE</button>
             </div>
             <div id="choreList"></div>
-            <button onclick="saveData()">SAVE MY SETTINGS</button>
+            <button onclick="saveData()">SAVE PREFERENCES</button>
         </div>
 
-        <button class="gen-btn" onclick="generate()">GENERATE ROSTER</button>
+        <button class="gen-btn" onclick="generate()">GENERATE WEEKLY ROSTER</button>
         <div id="result"></div>
         
-        <p style="text-align:center; font-size: 10px; color: #999; margin-top: 30px;" onclick="localStorage.clear(); location.reload();">RESET APP DATA</p>
+        <p style="text-align:center; font-size: 10px; color: #999; margin-top: 30px; cursor: pointer;" onclick="if(confirm('Reset all?')) { localStorage.clear(); location.reload(); }">RESET ALL FAMILY DATA</p>
     </div>
 
 <script>
@@ -64,17 +64,16 @@
         const user = document.getElementById('userSelect').value;
         const section = document.getElementById('availSection');
         const list = document.getElementById('choreList');
-
         if (!user) { section.style.display = 'none'; return; }
         section.style.display = 'block';
         list.innerHTML = '';
 
-        const saved = JSON.parse(localStorage.getItem('v3_' + user)) || null;
+        const saved = JSON.parse(localStorage.getItem('v4_' + user)) || null;
 
         days.forEach(day => {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'day-box';
-            let html = `<div class="day-title"><b>${day}</b> <span onclick="clearDay('${day}')" style="color:red; font-size:10px;">UNAVAILABLE</span></div>`;
+            let html = `<div class="day-title"><b>${day}</b> <span onclick="clearDay('${day}')" style="color:#ef4444; font-size:10px; cursor:pointer;">UNAVAILABLE</span></div>`;
             
             getChores(day).forEach(chore => {
                 const id = day + '-' + chore;
@@ -108,13 +107,13 @@
     function saveData() {
         const user = document.getElementById('userSelect').value;
         const checked = Array.from(document.querySelectorAll('.c-box:checked')).map(b => b.value);
-        localStorage.setItem('v3_' + user, JSON.stringify(checked));
-        alert("Saved! Now the next person can go.");
+        localStorage.setItem('v4_' + user, JSON.stringify(checked));
+        alert("Preferences saved for " + user);
         window.scrollTo(0,0);
     }
 
     function isOk(p, d, c) {
-        const data = JSON.parse(localStorage.getItem('v3_' + p));
+        const data = JSON.parse(localStorage.getItem('v4_' + p));
         if (data === null) return true;
         return data.includes(d + '-' + c);
     }
@@ -124,7 +123,7 @@
         let cooks = {};
         let monThu = ["Monday", "Tuesday", "Wednesday", "Thursday"];
         
-        // Rules
+        // --- COOKING RULES ---
         let sDay = monThu.find(d => isOk("Sam", d, "Cook"));
         if (sDay) cooks[sDay] = "Sam";
         let hDay = monThu.find(d => isOk("Hannah", d, "Cook") && d !== sDay);
@@ -133,30 +132,43 @@
 
         let nOut = days.filter(d => cooks[d] === "Nathan" && !isOk("Nathan", d, "Cook")).length;
 
+        // --- BUILD TABLE ---
         let html = '<table><tr><th>Job</th><th>Who</th></tr>';
         days.forEach(day => {
             html += `<tr><td colspan="2" class="day-head">${day.toUpperCase()}</td></tr>`;
             getChores(day).forEach(chore => {
-                let p = "UNASSIGNED";
+                let p = "UNASSIGNED ⚠️";
+
                 if (chore === "Cook") {
                     let chef = cooks[day];
-                    if (chef === "Nathan" && nOut > 2 && !isOk("Nathan", day, "Cook")) p = "TAKEOUT!";
+                    if (chef === "Nathan" && nOut > 2 && !isOk("Nathan", day, "Cook")) p = "TAKEOUT! 🍕";
                     else if (isOk(chef, day, "Cook")) p = chef;
-                    else p = users.find(u => isOk(u, day, "Cook")) || "TAKEOUT!";
+                    else p = users.find(u => isOk(u, day, "Cook")) || "TAKEOUT! 🍕";
                 } else {
+                    // --- NON-COOKING FAIRNESS + NEW VACUUM RULES ---
                     let avail = users.filter(u => isOk(u, day, chore));
+
+                    // Rule: Only Hannah & Sam for Vacuum Downstairs
+                    if (chore === "Vacuum Downstairs") {
+                        avail = avail.filter(u => u === "Hannah" || u === "Sam");
+                    }
+                    // Rule: Only Nathan for Vacuum Upstairs
+                    if (chore === "Vacuum Upstairs") {
+                        avail = avail.filter(u => u === "Nathan");
+                    }
+
                     if (avail.length > 0) {
                         avail.sort((a,b) => tally[a] - tally[b]);
                         p = avail[0];
                         tally[p]++;
                     }
                 }
-                html += `<tr><td>${chore}</td><td style="font-weight:bold; color:#4f46e5">${p}</td></tr>`;
+                html += `<tr><td style="font-size: 13px; color: #666;">${chore}</td><td style="font-weight:bold; color:#4f46e5">${p}</td></tr>`;
             });
         });
         html += '</table>';
         document.getElementById('result').innerHTML = html;
-        document.getElementById('result').scrollIntoView();
+        document.getElementById('result').scrollIntoView({behavior: "smooth"});
     }
 </script>
 </body>
