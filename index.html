@@ -3,49 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Chore Roster - Grid View</title>
+    <title>Family Chore-O-Matic</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 1000px; margin: auto; }
-        h1 { text-align: center; color: #4f46e5; margin-top: 0; font-style: italic; text-transform: uppercase; letter-spacing: -1px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; color: #333; line-height: 1.4; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 1100px; margin: auto; }
+        h1 { text-align: center; color: #4f46e5; margin-top: 0; font-style: italic; text-transform: uppercase; }
         
-        /* Form elements */
-        select, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; transition: all 0.2s; }
-        select:focus { border-color: #4f46e5; outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        button { background: #4f46e5; color: white; border: none; cursor: pointer; }
-        button:hover { background: #4338ca; transform: translateY(-1px); }
+        /* UI Elements */
+        select, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; }
+        button { background: #4f46e5; color: white; border: none; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
         .gen-btn { background: #10b981; margin-top: 15px; font-size: 18px; }
-        .gen-btn:hover { background: #059669; }
-
-        /* Availability Section */
+        
+        /* Availability List */
         .day-box { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-        .day-title { color: #4f46e5; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; display: flex; justify-content: space-between; font-weight: bold; }
+        .day-title { color: #4f46e5; text-transform: uppercase; font-size: 14px; display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 10px; }
         .chore-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 8px; }
         .chore-row.active { border-color: #4f46e5; background: #f5f3ff; }
         input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
 
-        /* The Grid Roster */
+        /* Roster Grid */
         .table-container { width: 100%; overflow-x: auto; margin-top: 30px; border-radius: 15px; border: 2px solid #4f46e5; }
-        table { width: 100%; border-collapse: collapse; background: white; min-width: 800px; }
-        th, td { padding: 15px; text-align: center; border: 1px solid #eef2f6; }
-        th { background: #4f46e5; color: white; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
-        .chore-col { background: #f8fafc; font-weight: bold; color: #64748b; text-align: left; width: 150px; }
-        .date-label { display: block; font-size: 14px; margin-top: 4px; font-weight: 900; color: #c7d2fe; }
-        .person-val { font-weight: 800; color: #1e1b4b; font-size: 15px; }
+        table { width: 100%; border-collapse: collapse; background: white; min-width: 900px; }
+        th, td { padding: 12px; text-align: center; border: 1px solid #eef2f6; }
+        th { background: #4f46e5; color: white; font-size: 11px; }
+        .chore-col { background: #f8fafc; font-weight: bold; color: #64748b; text-align: left; width: 160px; font-size: 12px; }
+        .date-label { display: block; font-size: 14px; font-weight: 900; color: #c7d2fe; margin-top: 4px; }
+        .person-val { font-weight: 800; color: #1e1b4b; }
         .takeout { color: #ef4444; font-weight: 900; }
-        .na { color: #cbd5e1; font-size: 11px; font-weight: normal; }
-
-        .footer-reset { text-align:center; font-size: 10px; color: #999; margin-top: 40px; cursor: pointer; }
+        
+        .status { text-align: center; font-size: 10px; font-weight: bold; color: #10b981; margin-bottom: 10px; text-transform: uppercase; }
     </style>
 </head>
-<body onload="initDates()">
+<body onload="init()">
 
     <div class="card">
-        <h1>CHORE-O-MATIC Grid</h1>
+        <h1>Chore-O-Matic Cloud</h1>
+        <div id="dbStatus" class="status">● Connecting to Database...</div>
         
-        <label><b>1. Who is entering data?</b></label>
-        <select id="userSelect" onchange="renderAvailability()">
-            <option value="">-- Select Name --</option>
+        <label><b>1. Who are you?</b></label>
+        <select id="userSelect" onchange="loadUser()">
+            <option value="">-- Choose Name --</option>
             <option value="Nathan">Nathan</option>
             <option value="Sam">Sam</option>
             <option value="Hannah">Hannah</option>
@@ -53,32 +52,41 @@
         </select>
 
         <div id="availSection" style="display:none;">
-            <div style="display:flex; justify-content: space-between; align-items: center;">
-                <h3>2. Availability</h3>
-                <button onclick="setAll(false)" style="width:auto; padding: 5px 10px; font-size: 10px; background: #ef4444;">NONE</button>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin:0;">2. Your Availability</h3>
+                <button onclick="setAll(false)" style="width:auto; padding: 5px 12px; font-size: 10px; background: #ef4444; margin:0;">CLEAR ALL</button>
             </div>
             <div id="choreList"></div>
-            <button onclick="saveData()">SAVE PREFERENCES</button>
+            <button id="saveBtn" onclick="saveToCloud()">SAVE TO CLOUD</button>
         </div>
 
-        <hr style="margin: 40px 0; border: 0; border-top: 2px dashed #e2e8f0;">
+        <hr style="margin: 40px 0; border: 0; border-top: 2px dashed #cbd5e1;">
 
-        <label><b>3. Generate Grid Roster</b></label>
+        <label><b>3. Generate Roster</b></label>
         <select id="weekSelect"></select>
-        <button class="gen-btn" onclick="generate()">VIEW FULL GRID</button>
+        <button class="gen-btn" onclick="generate()">GENERATE GRID ROSTER</button>
         
         <div id="result" class="table-container"></div>
         
-        <p class="footer-reset" onclick="if(confirm('Reset all?')) { localStorage.clear(); location.reload(); }">RESET ALL FAMILY DATA</p>
+        <p style="text-align:center; font-size: 10px; color: #999; margin-top: 40px; cursor: pointer;" onclick="hardReset()">RESET SHARED DATABASE</p>
     </div>
 
 <script>
+    // --- DATABASE CONFIGURATION ---
+    const SB_URL = 'https://zrsncawiesvswjjbxplx.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpyc25jYXdpZXN2c3dqamJ4cGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzAwNTAsImV4cCI6MjA4NTkwNjA1MH0.tr9jvGU9PqsHf0bA4AAjBYXVYtgGJIMMO7Go2wQHxTI';
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
     const users = ["Nathan", "Sam", "Hannah", "Emily"];
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const dinnerChores = ["Pre-dinner", "Cook", "Post-dinner"];
-    const saturdayOnlyChores = ["Vacuum Upstairs", "Vacuum Downstairs", "Bathroom"];
-    const allUniqueChores = [...dinnerChores, ...saturdayOnlyChores];
-    const VERSION = "v8";
+    const saturdayOnly = ["Vacuum Upstairs", "Vacuum Downstairs", "Bathroom"];
+    const VERSION = "vCloud_v1";
+
+    function init() {
+        initDates();
+        document.getElementById('dbStatus').innerText = "● Cloud Database Linked";
+    }
 
     function initDates() {
         const select = document.getElementById('weekSelect');
@@ -86,83 +94,69 @@
         d.setDate(d.getDate() + (1 - d.getDay() + 7) % 7);
         for (let i = 0; i < 4; i++) {
             let dateStr = d.toLocaleDateString('en-NZ', { day: '2-digit', month: 'short' }).replace(' ', '-').toUpperCase();
-            let iso = d.toISOString().split('T')[0];
-            let option = new Option(`Week of Mon ${dateStr}`, iso);
+            let option = new Option(`Week starting Mon ${dateStr}`, d.toISOString().split('T')[0]);
             select.add(option);
             d.setDate(d.getDate() + 7);
         }
     }
 
-    function getChoresForDay(day) {
-        if (day === "Saturday") return allUniqueChores;
-        return dinnerChores;
+    function getChores(day) {
+        return (day === "Saturday") ? [...dinnerChores, ...saturdayOnly] : dinnerChores;
     }
 
-    function renderAvailability() {
-        const user = document.getElementById('userSelect').value;
-        const section = document.getElementById('availSection');
+    // --- FETCH DATA FROM CLOUD ---
+    async function loadUser() {
+        const name = document.getElementById('userSelect').value;
+        if (!name) { document.getElementById('availSection').style.display = 'none'; return; }
+        document.getElementById('availSection').style.display = 'block';
         const list = document.getElementById('choreList');
-        if (!user) { section.style.display = 'none'; return; }
-        section.style.display = 'block';
+        list.innerHTML = 'Fetching cloud data...';
+
+        const { data } = await _supabase.from('availability').select('selections').eq('name', name).single();
+        const saved = data ? data.selections : null;
+
         list.innerHTML = '';
-
-        const saved = JSON.parse(localStorage.getItem(VERSION + '_' + user)) || null;
-
         days.forEach(day => {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'day-box';
             let html = `<div class="day-title"><b>${day}</b> <span onclick="clearDay('${day}')" style="color:#ef4444; font-size:10px; cursor:pointer;">UNAVAILABLE</span></div>`;
-            
-            getChoresForDay(day).forEach(chore => {
+            getChores(day).forEach(chore => {
                 const id = day + '-' + chore;
                 const checked = (saved === null) ? true : saved.includes(id);
-                html += `
-                    <div class="chore-row ${checked ? 'active' : ''}">
-                        <span>${chore}</span>
-                        <input type="checkbox" value="${id}" class="c-box" ${checked ? 'checked' : ''} onchange="this.parentElement.classList.toggle('active')">
-                    </div>
-                `;
+                html += `<div class="chore-row ${checked ? 'active' : ''}"><span>${chore}</span><input type="checkbox" value="${id}" class="c-box" ${checked ? 'checked' : ''} onchange="this.parentElement.classList.toggle('active')"></div>`;
             });
             dayDiv.innerHTML = html;
             list.appendChild(dayDiv);
         });
     }
 
-    function clearDay(day) {
-        const boxes = document.querySelectorAll('.c-box');
-        boxes.forEach(b => { if(b.value.startsWith(day)) { b.checked = false; b.parentElement.classList.remove('active'); }});
+    async function saveToCloud() {
+        const name = document.getElementById('userSelect').value;
+        const btn = document.getElementById('saveBtn');
+        const selections = Array.from(document.querySelectorAll('.c-box:checked')).map(b => b.value);
+        btn.innerText = "UPLOADING...";
+        const { error } = await _supabase.from('availability').upsert({ name, selections });
+        if (error) alert("Save failed: " + error.message);
+        else { alert("Cloud Save Success!"); btn.innerText = "SAVE TO CLOUD"; }
     }
 
-    function setAll(val) {
-        const boxes = document.querySelectorAll('.c-box');
-        boxes.forEach(b => { 
-            b.checked = val; 
-            if(val) b.parentElement.classList.add('active'); 
-            else b.parentElement.classList.remove('active');
-        });
-    }
+    // --- ROSTER LOGIC ---
+    async function generate() {
+        const { data, error } = await _supabase.from('availability').select('*');
+        if (error) { alert("Fetch error: " + error.message); return; }
 
-    function saveData() {
-        const user = document.getElementById('userSelect').value;
-        const checked = Array.from(document.querySelectorAll('.c-box:checked')).map(b => b.value);
-        localStorage.setItem(VERSION + '_' + user, JSON.stringify(checked));
-        alert("Preferences saved!");
-        window.scrollTo(0,0);
-    }
+        const isOk = (p, d, c) => {
+            const row = data.find(r => r.name === p);
+            const prefs = row ? row.selections : null;
+            return (prefs === null) ? true : prefs.includes(d + '-' + c);
+        };
 
-    function isOk(p, d, c) {
-        const data = JSON.parse(localStorage.getItem(VERSION + '_' + p));
-        if (data === null) return true;
-        return data.includes(d + '-' + c);
-    }
-
-    function generate() {
         const startDate = new Date(document.getElementById('weekSelect').value);
         let tally = { Nathan:0, Sam:0, Hannah:0, Emily:0 };
         let cooks = {};
         let monThu = ["Monday", "Tuesday", "Wednesday", "Thursday"];
         
-        // --- 1. PRE-ASSIGN COOKS ---
+        // 1. Assign Sam/Hannah (1 night Mon-Thu)
         let sDay = monThu.find(d => isOk("Sam", d, "Cook"));
         if (sDay) cooks[sDay] = "Sam";
         let hDay = monThu.find(d => isOk("Hannah", d, "Cook") && d !== sDay);
@@ -171,33 +165,27 @@
 
         let nOut = days.filter(d => cooks[d] === "Nathan" && !isOk("Nathan", d, "Cook")).length;
 
-        // --- 2. CALCULATE FULL WEEK DATA ---
-        let weeklySchedule = {}; // Structure: { Day: { Chore: Person } }
-
+        // 2. Compute Week Data
+        let schedule = {};
         days.forEach(day => {
-            weeklySchedule[day] = {};
-            let dinnerAssignedToday = [];
+            schedule[day] = {};
+            let dinnerSet = [];
             
-            // Priority: Assign Cook
             let chef = cooks[day];
             let actualChef = "UNASSIGNED";
-            if (chef === "Nathan" && nOut > 2 && !isOk("Nathan", day, "Cook")) actualChef = "TAKEOUT!";
-            else if (isOk(chef, day, "Cook")) { actualChef = chef; dinnerAssignedToday.push(chef); }
+            if (chef === "Nathan" && nOut > 2 && !isOk("Nathan", day, "Cook")) actualChef = "TAKEOUT! 🍕";
+            else if (isOk(chef, day, "Cook")) { actualChef = chef; dinnerSet.push(chef); }
             else { 
-                actualChef = users.find(u => isOk(u, day, "Cook")) || "TAKEOUT!";
-                if (actualChef !== "TAKEOUT!") dinnerAssignedToday.push(actualChef);
+                actualChef = users.find(u => isOk(u, day, "Cook")) || "TAKEOUT! 🍕";
+                if (actualChef !== "TAKEOUT! 🍕") dinnerSet.push(actualChef);
             }
-            weeklySchedule[day]["Cook"] = actualChef;
+            schedule[day]["Cook"] = actualChef;
 
-            // Assign other chores for the day
-            getChoresForDay(day).forEach(chore => {
+            getChores(day).forEach(chore => {
                 if (chore === "Cook") return;
-
                 let p = "UNASSIGNED";
                 let avail = users.filter(u => isOk(u, day, chore));
-
-                // Constraints
-                if (dinnerChores.includes(chore)) avail = avail.filter(u => !dinnerAssignedToday.includes(u));
+                if (dinnerChores.includes(chore)) avail = avail.filter(u => !dinnerSet.includes(u));
                 if (chore === "Vacuum Downstairs") avail = avail.filter(u => u === "Hannah" || u === "Sam");
                 if (chore === "Vacuum Upstairs") avail = avail.filter(u => u === "Nathan");
 
@@ -205,48 +193,43 @@
                     avail.sort((a,b) => tally[a] - tally[b]);
                     p = avail[0];
                     tally[p]++;
-                    if (dinnerChores.includes(chore)) dinnerAssignedToday.push(p);
+                    if (dinnerChores.includes(chore)) dinnerSet.push(p);
                 }
-                weeklySchedule[day][chore] = p;
+                schedule[day][chore] = p;
             });
         });
 
-        // --- 3. RENDER GRID TABLE ---
+        // 3. Render Grid
+        const allChores = ["Pre-dinner", "Cook", "Post-dinner", "Vacuum Upstairs", "Vacuum Downstairs", "Bathroom"];
         let html = '<table><thead><tr><th class="chore-col">CHORE</th>';
-        
-        // Table Headers (Days)
         days.forEach((day, index) => {
             let d = new Date(startDate);
             d.setDate(startDate.getDate() + index);
-            let dateStr = `${d.getDate().toString().padStart(2,'0')}-${d.toLocaleString('en-NZ', {month:'short'}).toUpperCase()}`;
-            html += `<th>${day}<span class="date-label">${dateStr}</span></th>`;
+            let ds = `${d.getDate().toString().padStart(2,'0')}-${d.toLocaleString('en-NZ', {month:'short'}).toUpperCase()}`;
+            html += `<th>${day}<span class="date-label">${ds}</span></th>`;
         });
         html += '</tr></thead><tbody>';
-
-        // Table Rows (Chores)
-        allUniqueChores.forEach(chore => {
+        
+        allChores.forEach(chore => {
             html += `<tr><td class="chore-col">${chore}</td>`;
             days.forEach(day => {
-                let person = weeklySchedule[day][chore];
-                let cellClass = "person-val";
-                
-                if (!person) {
-                    person = '<span class="na">-</span>';
-                } else if (person.includes('TAKEOUT')) {
-                    cellClass += " takeout";
-                } else if (person === "UNASSIGNED") {
-                    cellClass += " na";
-                }
-                
-                html += `<td><span class="${cellClass}">${person}</span></td>`;
+                let p = schedule[day][chore] || '<span style="color:#ddd">-</span>';
+                let style = p.includes('TAKEOUT') ? 'color:#ef4444' : 'color:#4f46e5';
+                html += `<td><span class="person-val" style="${style}">${p}</span></td>`;
             });
             html += '</tr>';
         });
-
-        html += '</tbody></table>';
-        document.getElementById('result').innerHTML = html;
-        document.getElementById('result').scrollIntoView({behavior: "smooth"});
+        document.getElementById('result').innerHTML = html + '</tbody></table>';
     }
+
+    async function hardReset() {
+        if(confirm("DANGER: This wipes every person's cloud data for the new week. Continue?")) {
+            await _supabase.from('availability').delete().neq('name', 'dummy');
+            location.reload();
+        }
+    }
+    function setAll(v) { document.querySelectorAll('.c-box').forEach(b => { b.checked = v; b.parentElement.classList.toggle('active', v); }); }
+    function clearDay(d) { document.querySelectorAll('.c-box').forEach(b => { if(b.value.startsWith(d)) { b.checked = false; b.parentElement.classList.remove('active'); }}); }
 </script>
 </body>
 </html>
