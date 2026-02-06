@@ -38,12 +38,12 @@
 
     <div class="max-w-md mx-auto">
         <header class="text-center mb-8 pt-6">
-            <h1 class="text-4xl font-black text-indigo-600 tracking-tighter italic">CHORE-O-MATIC</h1>
+            <h1 class="text-4xl font-black text-indigo-600 tracking-tighter italic uppercase">Chore-O-Matic</h1>
             <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Nathan • Sam • Hannah • Emily</p>
         </header>
 
         <section class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-8">
-            <label class="block text-[10px] font-black uppercase text-slate-400 mb-2 ml-1">1. Who are you?</label>
+            <label class="block text-[10px] font-black uppercase text-slate-400 mb-2 ml-1">1. Identify yourself</label>
             <select id="userSelect" class="w-full border-2 border-slate-100 p-4 rounded-2xl bg-slate-50 focus:border-indigo-500 outline-none font-bold text-xl appearance-none" onchange="renderChecklist()">
                 <option value="">Select Name...</option>
                 <option value="Nathan">Nathan</option>
@@ -53,7 +53,7 @@
             </select>
         </section>
 
-        <div id="availabilitySection" class="hidden">
+        <div id="availabilitySection" class="hidden animate-in slide-in-from-bottom-4 duration-500">
             <div class="flex justify-between items-center mb-6 px-2">
                 <h2 class="font-black text-2xl text-slate-800 tracking-tight">2. Your Tasks</h2>
                 <div class="flex gap-2">
@@ -71,34 +71,40 @@
 
         <hr class="my-16 border-slate-200">
 
-        <div class="space-y-4 px-2 mb-12">
-            <button onclick="generateRoster()" class="w-full bg-emerald-500 text-white py-6 rounded-3xl font-black text-2xl shadow-xl shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition">
-                GENERATE ROSTER
+        <div class="space-y-4 px-2 mb-12 text-center">
+            <button onclick="generateRoster()" class="w-full bg-emerald-500 text-white py-6 rounded-3xl font-black text-2xl shadow-xl shadow-emerald-100 hover:bg-emerald-600 active:scale-95 transition uppercase italic">
+                Generate Roster
             </button>
-            <button onclick="clearAllData()" class="w-full text-slate-300 text-[10px] font-bold uppercase tracking-widest pt-4 text-center">
-                Reset Everything for New Week
+            <button onclick="clearAllData()" class="text-slate-300 text-[10px] font-bold uppercase tracking-widest pt-4">
+                Reset all data for new week
             </button>
         </div>
 
         <div id="rosterResult" class="mt-12 hidden">
             <div class="bg-white rounded-3xl shadow-2xl border-4 border-indigo-600 overflow-hidden" id="screenshotZone">
                 <div class="bg-indigo-600 p-6 text-white text-center">
-                    <h2 class="font-black text-3xl uppercase italic tracking-tighter">Weekly Roster</h2>
-                    <p class="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mt-1">Custom Cooking Rules Applied</p>
+                    <h2 class="font-black text-3xl uppercase italic tracking-tighter">Official Roster</h2>
+                    <p class="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mt-1 italic">Special Cooking Rules Applied</p>
                 </div>
                 <table class="w-full text-sm">
                     <tbody id="rosterBody" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
-            <p class="text-center mt-6 text-slate-400 text-sm font-bold animate-bounce uppercase">📸 Take a screenshot now!</p>
+            <p class="text-center mt-6 text-slate-400 text-sm font-bold animate-bounce uppercase italic">📸 Screenshot this!</p>
         </div>
     </div>
 
     <script>
         const people = ["Nathan", "Sam", "Hannah", "Emily"];
         const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-        const weekdayChores = ["Pre-dinner", "Cook", "Post-dinner"];
-        const weekendChores = ["Pre-dinner", "Cook", "Post-dinner", "Vacuum", "Bathroom"];
+        
+        // Define chore logic
+        function getChoresForDay(day) {
+            if (day === "Saturday") {
+                return ["Pre-dinner", "Cook", "Post-dinner", "Vacuum Upstairs", "Vacuum Downstairs", "Bathroom"];
+            }
+            return ["Pre-dinner", "Cook", "Post-dinner"];
+        }
 
         function renderChecklist() {
             const user = document.getElementById('userSelect').value;
@@ -111,8 +117,7 @@
             const savedData = savedDataRaw ? JSON.parse(savedDataRaw) : null;
 
             days.forEach(day => {
-                const isWeekend = (day === "Saturday" || day === "Sunday");
-                const chores = isWeekend ? weekendChores : weekdayChores;
+                const chores = getChoresForDay(day);
                 let daySection = document.createElement('div');
                 daySection.setAttribute('data-day-group', day);
                 daySection.innerHTML = `
@@ -135,98 +140,4 @@
 
         function setDayUnavailable(dayName) {
             const dayGroup = document.querySelector(`[data-day-group="${dayName}"]`);
-            dayGroup.querySelectorAll('.chore-check').forEach(box => box.checked = false);
-        }
-
-        function setAll(status) { document.querySelectorAll('.chore-check').forEach(c => c.checked = status); }
-
-        function saveAvailability() {
-            const user = document.getElementById('userSelect').value;
-            const checkedItems = Array.from(document.querySelectorAll('.chore-check:checked')).map(c => c.value);
-            localStorage.setItem(`avail_${user}`, JSON.stringify(checkedItems));
-            alert(`Preferences saved for ${user}!`);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function clearAllData() {
-            if(confirm("Wipe everything?")) { people.forEach(p => localStorage.removeItem(`avail_${p}`)); location.reload(); }
-        }
-
-        function isAvailable(person, day, chore) {
-            const data = localStorage.getItem(`avail_${person}`);
-            if (data === null) return true;
-            return JSON.parse(data).includes(`${day}-${chore}`);
-        }
-
-        function generateRoster() {
-            const rosterBody = document.getElementById('rosterBody');
-            rosterBody.innerHTML = '';
-            let tally = {};
-            people.forEach(p => tally[p] = 0);
-
-            // --- PRE-CALCULATE COOKING ASSIGNMENTS ---
-            let cookAssignments = {};
-            let monToThu = ["Monday", "Tuesday", "Wednesday", "Thursday"];
-            
-            // 1. Assign Sam (1 night Mon-Thu)
-            let samDay = monToThu.find(d => isAvailable("Sam", d, "Cook"));
-            if (samDay) cookAssignments[samDay] = "Sam";
-
-            // 2. Assign Hannah (1 night Mon-Thu, not Sam's day)
-            let hannahDay = monToThu.find(d => isAvailable("Hannah", d, "Cook") && d !== samDay);
-            if (hannahDay) cookAssignments[hannahDay] = "Hannah";
-
-            // 3. Nathan handles the rest (Fri, Sat, Sun + remaining Mon-Thu)
-            days.forEach(d => {
-                if (!cookAssignments[d]) cookAssignments[d] = "Nathan";
-            });
-
-            // 4. CHECK NATHAN'S OVERALL AVAILABILITY
-            let nathanUnavailableCount = days.filter(d => cookAssignments[d] === "Nathan" && !isAvailable("Nathan", d, "Cook")).length;
-
-            // --- GENERATE FINAL TABLE ---
-            days.forEach(day => {
-                const isWeekend = (day === "Saturday" || day === "Sunday");
-                const choresForDay = isWeekend ? weekendChores : weekdayChores;
-
-                rosterBody.innerHTML += `<tr class="bg-slate-100"><td colspan="2" class="p-4 text-center font-black text-slate-400 uppercase text-xs tracking-[0.4em]">${day}</td></tr>`;
-
-                choresForDay.forEach(chore => {
-                    let assignedPerson = "UNASSIGNED ⚠️";
-
-                    if (chore === "Cook") {
-                        let chef = cookAssignments[day];
-                        // Apply the "No Cook" rule if Nathan is too busy
-                        if (chef === "Nathan" && nathanUnavailableCount > 2 && !isAvailable("Nathan", day, "Cook")) {
-                            assignedPerson = "🚫 NO COOK (Takeout!)";
-                        } else if (isAvailable(chef, day, "Cook")) {
-                            assignedPerson = chef;
-                        } else {
-                            // Fallback if the designated chef is busy and rule doesn't trigger
-                            assignedPerson = people.find(p => isAvailable(p, day, "Cook")) || "🚫 NO COOK";
-                        }
-                    } else {
-                        // Standard Fairness Logic for non-cooking chores
-                        let availablePeople = people.filter(p => isAvailable(p, day, chore));
-                        if (availablePeople.length > 0) {
-                            availablePeople.sort((a, b) => tally[a] - tally[b]);
-                            assignedPerson = availablePeople[0];
-                            tally[assignedPerson]++;
-                        }
-                    }
-
-                    rosterBody.innerHTML += `
-                        <tr>
-                            <td class="p-5 font-bold text-slate-400 border-r w-1/2 text-sm uppercase tracking-tight">${chore}</td>
-                            <td class="p-5 text-xl font-black ${assignedPerson.includes('NO COOK') ? 'text-red-500' : 'text-indigo-900'} italic tracking-tighter">${assignedPerson}</td>
-                        </tr>
-                    `;
-                });
-            });
-
-            document.getElementById('rosterResult').classList.remove('hidden');
-            document.getElementById('rosterResult').scrollIntoView({ behavior: 'smooth' });
-        }
-    </script>
-</body>
-</html>
+            dayGroup.querySelectorAll('.chore-check').
