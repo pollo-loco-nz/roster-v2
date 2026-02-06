@@ -1,146 +1,163 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Family Chore Roster</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chore Roster</title>
     <style>
-        /* Simplified styles for maximum mobile compatibility */
-        .chore-btn {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.25rem;
-            margin-bottom: 0.75rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 1rem;
-            background: white;
-        }
-        .active-btn {
-            border-color: #4f46e5 !important;
-            background-color: #f5f3ff !important;
-        }
-        input[type="checkbox"] {
-            width: 1.5rem;
-            height: 1.5rem;
-        }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        h1 { text-align: center; color: #4f46e5; margin-top: 0; }
+        select, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; }
+        button { background: #4f46e5; color: white; border: none; cursor: pointer; }
+        .gen-btn { background: #10b981; margin-top: 20px; font-size: 18px; }
+        .day-box { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .day-title { color: #4f46e5; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .chore-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 8px; margin-bottom: 8px; }
+        .chore-row.active { border-color: #4f46e5; background: #f5f3ff; }
+        input[type="checkbox"] { width: 22px; height: 22px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #4f46e5; color: white; }
+        .day-head { background: #f8fafc; font-weight: bold; text-align: center; color: #64748b; font-size: 12px; }
     </style>
 </head>
-<body class="bg-slate-50 p-4 font-sans text-slate-900 pb-20">
+<body>
 
-    <div class="max-w-md mx-auto">
-        <div id="status" class="text-[10px] text-center text-green-500 font-bold uppercase mb-2">● App Ready</div>
+    <div class="card">
+        <h1>CHORE-O-MATIC</h1>
+        
+        <label><b>1. Who are you?</b></label>
+        <select id="userSelect" onchange="renderAvailability()">
+            <option value="">-- Select Name --</option>
+            <option value="Nathan">Nathan</option>
+            <option value="Sam">Sam</option>
+            <option value="Hannah">Hannah</option>
+            <option value="Emily">Emily</option>
+        </select>
 
-        <header class="text-center mb-6">
-            <h1 class="text-3xl font-black text-indigo-600 italic">CHORE-O-MATIC</h1>
-            <p class="text-slate-400 text-[10px] font-bold mt-1 tracking-widest uppercase">Nathan • Sam • Hannah • Emily</p>
-        </header>
-
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6">
-            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Step 1: Who is this?</label>
-            <select id="userSelect" class="w-full border-2 border-slate-100 p-4 rounded-xl bg-slate-50 font-bold text-lg outline-none focus:border-indigo-500" onchange="runRender()">
-                <option value="">Choose a name...</option>
-                <option value="Nathan">Nathan</option>
-                <option value="Sam">Sam</option>
-                <option value="Hannah">Hannah</option>
-                <option value="Emily">Emily</option>
-            </select>
-        </div>
-
-        <div id="availabilitySection" class="hidden">
-            <div class="flex justify-between items-center mb-4 px-1">
-                <h2 class="font-black text-xl">Step 2: Availability</h2>
-                <div class="flex gap-2">
-                    <button onclick="setAll(true)" class="text-[9px] font-bold bg-indigo-50 text-indigo-600 px-2 py-1 rounded uppercase">All</button>
-                    <button onclick="setAll(false)" class="text-[9px] font-bold bg-red-50 text-red-500 px-2 py-1 rounded uppercase">None</button>
-                </div>
+        <div id="availSection" style="display:none;">
+            <div style="display:flex; justify-content: space-between; align-items: center;">
+                <h3>2. Your Availability</h3>
+                <button onclick="setAll(false)" style="width:auto; padding: 5px 10px; font-size: 10px; background: #ef4444;">NONE</button>
             </div>
-            
-            <div id="choreListContainer" class="space-y-8 mb-8">
-                </div>
-            
-            <button onclick="savePrefs()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black shadow-lg text-lg sticky bottom-4 border-2 border-white">
-                SAVE MY JOBS
-            </button>
+            <div id="choreList"></div>
+            <button onclick="saveData()">SAVE MY SETTINGS</button>
         </div>
 
-        <hr class="my-12 border-slate-200">
-
-        <div class="space-y-4">
-            <button onclick="generateRoster()" class="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black text-xl shadow-md uppercase italic">
-                Generate Roster
-            </button>
-            <button onclick="hardReset()" class="w-full text-slate-300 text-[10px] font-bold uppercase tracking-widest text-center">
-                Reset Everything
-            </button>
-        </div>
-
-        <div id="rosterResult" class="mt-10 hidden">
-            <div class="bg-white rounded-2xl shadow-xl border-4 border-indigo-600 overflow-hidden">
-                <div class="bg-indigo-600 p-4 text-white text-center">
-                    <h2 class="font-black text-xl uppercase tracking-tight">Weekly Schedule</h2>
-                    <p class="text-indigo-200 text-[9px] font-bold uppercase tracking-widest">Cooking rules & fairness applied</p>
-                </div>
-                <table class="w-full text-sm">
-                    <tbody id="rosterBody" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-            <p class="text-center mt-4 text-slate-400 text-xs font-bold animate-pulse">📸 SCREENSHOT NOW</p>
-        </div>
+        <button class="gen-btn" onclick="generate()">GENERATE ROSTER</button>
+        <div id="result"></div>
+        
+        <p style="text-align:center; font-size: 10px; color: #999; margin-top: 30px;" onclick="localStorage.clear(); location.reload();">RESET APP DATA</p>
     </div>
 
-    <script>
-        // DATA DEFINITIONS
-        const users = ["Nathan", "Sam", "Hannah", "Emily"];
-        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+<script>
+    const users = ["Nathan", "Sam", "Hannah", "Emily"];
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-        function getChores(day) {
-            if (day === "Saturday") return ["Pre-dinner", "Cook", "Post-dinner", "Vacuum Upstairs", "Vacuum Downstairs", "Bathroom"];
-            return ["Pre-dinner", "Cook", "Post-dinner"];
-        }
+    function getChores(day) {
+        if (day === "Saturday") return ["Pre-dinner", "Cook", "Post-dinner", "Vacuum Upstairs", "Vacuum Downstairs", "Bathroom"];
+        return ["Pre-dinner", "Cook", "Post-dinner"];
+    }
 
-        // 1. RENDER THE CHECKLIST
-        function runRender() {
-            const user = document.getElementById('userSelect').value;
-            const section = document.getElementById('availabilitySection');
-            const container = document.getElementById('choreListContainer');
+    function renderAvailability() {
+        const user = document.getElementById('userSelect').value;
+        const section = document.getElementById('availSection');
+        const list = document.getElementById('choreList');
 
-            if (!user) {
-                section.classList.add('hidden');
-                return;
-            }
+        if (!user) { section.style.display = 'none'; return; }
+        section.style.display = 'block';
+        list.innerHTML = '';
 
-            section.classList.remove('hidden');
-            container.innerHTML = '';
+        const saved = JSON.parse(localStorage.getItem('v3_' + user)) || null;
 
-            const saved = localStorage.getItem('avail_' + user);
-            const savedArray = saved ? JSON.parse(saved) : null;
-
-            days.forEach(day => {
-                const dayDiv = document.createElement('div');
-                dayDiv.className = "day-group";
-                dayDiv.setAttribute('data-day', day);
-                
-                let html = `
-                    <div class="flex justify-between items-end mb-3 border-b-2 border-indigo-100 pb-1 mx-1">
-                        <span class="font-black text-indigo-600 text-lg uppercase tracking-tighter">${day}</span>
-                        <button onclick="clearDay('${day}')" class="text-[9px] font-bold text-red-400 uppercase">Unavailable</button>
+        days.forEach(day => {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'day-box';
+            let html = `<div class="day-title"><b>${day}</b> <span onclick="clearDay('${day}')" style="color:red; font-size:10px;">UNAVAILABLE</span></div>`;
+            
+            getChores(day).forEach(chore => {
+                const id = day + '-' + chore;
+                const checked = (saved === null) ? true : saved.includes(id);
+                html += `
+                    <div class="chore-row ${checked ? 'active' : ''}">
+                        <span>${chore}</span>
+                        <input type="checkbox" value="${id}" class="c-box" ${checked ? 'checked' : ''} onchange="this.parentElement.classList.toggle('active')">
                     </div>
                 `;
+            });
+            dayDiv.innerHTML = html;
+            list.appendChild(dayDiv);
+        });
+    }
 
-                getChores(day).forEach(chore => {
-                    const id = `${day}-${chore}`;
-                    // Default to checked if new user, otherwise check if in saved list
-                    const checked = (savedArray === null) ? 'checked' : (savedArray.includes(id) ? 'checked' : '');
-                    
-                    html += `
-                        <label class="chore-btn ${checked ? 'active-btn' : ''}">
-                            <span class="font-bold text-slate-600">${chore}</span>
-                            <input type="checkbox" value="${id}" class="chore-check" ${checked} onchange="this.parentElement.classList.toggle('active-btn')">
-                        </label>
-                    `;
-                });
+    function clearDay(day) {
+        const boxes = document.querySelectorAll('.c-box');
+        boxes.forEach(b => { if(b.value.startsWith(day)) { b.checked = false; b.parentElement.classList.remove('active'); }});
+    }
 
-                dayDiv.innerHTML = html;
-                container.
+    function setAll(val) {
+        const boxes = document.querySelectorAll('.c-box');
+        boxes.forEach(b => { 
+            b.checked = val; 
+            if(val) b.parentElement.classList.add('active'); 
+            else b.parentElement.classList.remove('active');
+        });
+    }
+
+    function saveData() {
+        const user = document.getElementById('userSelect').value;
+        const checked = Array.from(document.querySelectorAll('.c-box:checked')).map(b => b.value);
+        localStorage.setItem('v3_' + user, JSON.stringify(checked));
+        alert("Saved! Now the next person can go.");
+        window.scrollTo(0,0);
+    }
+
+    function isOk(p, d, c) {
+        const data = JSON.parse(localStorage.getItem('v3_' + p));
+        if (data === null) return true;
+        return data.includes(d + '-' + c);
+    }
+
+    function generate() {
+        let tally = { Nathan:0, Sam:0, Hannah:0, Emily:0 };
+        let cooks = {};
+        let monThu = ["Monday", "Tuesday", "Wednesday", "Thursday"];
+        
+        // Rules
+        let sDay = monThu.find(d => isOk("Sam", d, "Cook"));
+        if (sDay) cooks[sDay] = "Sam";
+        let hDay = monThu.find(d => isOk("Hannah", d, "Cook") && d !== sDay);
+        if (hDay) cooks[hDay] = "Hannah";
+        days.forEach(d => { if (!cooks[d]) cooks[d] = "Nathan"; });
+
+        let nOut = days.filter(d => cooks[d] === "Nathan" && !isOk("Nathan", d, "Cook")).length;
+
+        let html = '<table><tr><th>Job</th><th>Who</th></tr>';
+        days.forEach(day => {
+            html += `<tr><td colspan="2" class="day-head">${day.toUpperCase()}</td></tr>`;
+            getChores(day).forEach(chore => {
+                let p = "UNASSIGNED";
+                if (chore === "Cook") {
+                    let chef = cooks[day];
+                    if (chef === "Nathan" && nOut > 2 && !isOk("Nathan", day, "Cook")) p = "TAKEOUT!";
+                    else if (isOk(chef, day, "Cook")) p = chef;
+                    else p = users.find(u => isOk(u, day, "Cook")) || "TAKEOUT!";
+                } else {
+                    let avail = users.filter(u => isOk(u, day, chore));
+                    if (avail.length > 0) {
+                        avail.sort((a,b) => tally[a] - tally[b]);
+                        p = avail[0];
+                        tally[p]++;
+                    }
+                }
+                html += `<tr><td>${chore}</td><td style="font-weight:bold; color:#4f46e5">${p}</td></tr>`;
+            });
+        });
+        html += '</table>';
+        document.getElementById('result').innerHTML = html;
+        document.getElementById('result').scrollIntoView();
+    }
+</script>
+</body>
+</html>
