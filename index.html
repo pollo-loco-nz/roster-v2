@@ -3,30 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chore Roster</title>
+    <title>Family Chore Roster - Grid View</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        h1 { text-align: center; color: #4f46e5; margin-top: 0; font-style: italic; }
-        select, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 1000px; margin: auto; }
+        h1 { text-align: center; color: #4f46e5; margin-top: 0; font-style: italic; text-transform: uppercase; letter-spacing: -1px; }
+        
+        /* Form elements */
+        select, button { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; transition: all 0.2s; }
+        select:focus { border-color: #4f46e5; outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
         button { background: #4f46e5; color: white; border: none; cursor: pointer; }
-        .gen-btn { background: #10b981; margin-top: 10px; font-size: 18px; }
-        .day-box { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .day-title { color: #4f46e5; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; font-weight: bold; }
-        .chore-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 8px; margin-bottom: 8px; }
+        button:hover { background: #4338ca; transform: translateY(-1px); }
+        .gen-btn { background: #10b981; margin-top: 15px; font-size: 18px; }
+        .gen-btn:hover { background: #059669; }
+
+        /* Availability Section */
+        .day-box { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        .day-title { color: #4f46e5; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; display: flex; justify-content: space-between; font-weight: bold; }
+        .chore-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 8px; }
         .chore-row.active { border-color: #4f46e5; background: #f5f3ff; }
-        input[type="checkbox"] { width: 22px; height: 22px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #4f46e5; color: white; }
-        .day-head { background: #f8fafc; font-weight: bold; text-align: center; color: #64748b; font-size: 11px; padding: 15px 5px; }
-        .date-sub { display: block; font-size: 16px; color: #4f46e5; margin-top: 4px; font-weight: 900; letter-spacing: 1px; }
+        input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
+
+        /* The Grid Roster */
+        .table-container { width: 100%; overflow-x: auto; margin-top: 30px; border-radius: 15px; border: 2px solid #4f46e5; }
+        table { width: 100%; border-collapse: collapse; background: white; min-width: 800px; }
+        th, td { padding: 15px; text-align: center; border: 1px solid #eef2f6; }
+        th { background: #4f46e5; color: white; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .chore-col { background: #f8fafc; font-weight: bold; color: #64748b; text-align: left; width: 150px; }
+        .date-label { display: block; font-size: 14px; margin-top: 4px; font-weight: 900; color: #c7d2fe; }
+        .person-val { font-weight: 800; color: #1e1b4b; font-size: 15px; }
+        .takeout { color: #ef4444; font-weight: 900; }
+        .na { color: #cbd5e1; font-size: 11px; font-weight: normal; }
+
+        .footer-reset { text-align:center; font-size: 10px; color: #999; margin-top: 40px; cursor: pointer; }
     </style>
 </head>
 <body onload="initDates()">
 
     <div class="card">
-        <h1>CHORE-O-MATIC</h1>
+        <h1>CHORE-O-MATIC Grid</h1>
         
         <label><b>1. Who is entering data?</b></label>
         <select id="userSelect" onchange="renderAvailability()">
@@ -46,41 +61,41 @@
             <button onclick="saveData()">SAVE PREFERENCES</button>
         </div>
 
-        <hr style="margin: 30px 0; border: 0; border-top: 2px dashed #eee;">
+        <hr style="margin: 40px 0; border: 0; border-top: 2px dashed #e2e8f0;">
 
-        <label><b>3. Generate Roster</b></label>
-        <select id="weekSelect">
-            </select>
-        <button class="gen-btn" onclick="generate()">GENERATE ROSTER</button>
+        <label><b>3. Generate Grid Roster</b></label>
+        <select id="weekSelect"></select>
+        <button class="gen-btn" onclick="generate()">VIEW FULL GRID</button>
         
-        <div id="result"></div>
+        <div id="result" class="table-container"></div>
         
-        <p style="text-align:center; font-size: 10px; color: #999; margin-top: 30px; cursor: pointer;" onclick="if(confirm('Reset all?')) { localStorage.clear(); location.reload(); }">RESET ALL FAMILY DATA</p>
+        <p class="footer-reset" onclick="if(confirm('Reset all?')) { localStorage.clear(); location.reload(); }">RESET ALL FAMILY DATA</p>
     </div>
 
 <script>
     const users = ["Nathan", "Sam", "Hannah", "Emily"];
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const dinnerChores = ["Pre-dinner", "Cook", "Post-dinner"];
-    const VERSION = "v7";
+    const saturdayOnlyChores = ["Vacuum Upstairs", "Vacuum Downstairs", "Bathroom"];
+    const allUniqueChores = [...dinnerChores, ...saturdayOnlyChores];
+    const VERSION = "v8";
 
     function initDates() {
         const select = document.getElementById('weekSelect');
         let d = new Date();
-        d.setDate(d.getDate() + (1 - d.getDay() + 7) % 7); // Find next Monday
-        
+        d.setDate(d.getDate() + (1 - d.getDay() + 7) % 7);
         for (let i = 0; i < 4; i++) {
-            let dateStr = d.toLocaleDateString('en-NZ', { day: '2-digit', month: 'short' }).replace(' ', '-');
+            let dateStr = d.toLocaleDateString('en-NZ', { day: '2-digit', month: 'short' }).replace(' ', '-').toUpperCase();
             let iso = d.toISOString().split('T')[0];
-            let option = new Option(`Week starting Mon ${dateStr}`, iso);
+            let option = new Option(`Week of Mon ${dateStr}`, iso);
             select.add(option);
             d.setDate(d.getDate() + 7);
         }
     }
 
-    function getChores(day) {
-        if (day === "Saturday") return ["Pre-dinner", "Cook", "Post-dinner", "Vacuum Upstairs", "Vacuum Downstairs", "Bathroom"];
-        return ["Pre-dinner", "Cook", "Post-dinner"];
+    function getChoresForDay(day) {
+        if (day === "Saturday") return allUniqueChores;
+        return dinnerChores;
     }
 
     function renderAvailability() {
@@ -98,7 +113,7 @@
             dayDiv.className = 'day-box';
             let html = `<div class="day-title"><b>${day}</b> <span onclick="clearDay('${day}')" style="color:#ef4444; font-size:10px; cursor:pointer;">UNAVAILABLE</span></div>`;
             
-            getChores(day).forEach(chore => {
+            getChoresForDay(day).forEach(chore => {
                 const id = day + '-' + chore;
                 const checked = (saved === null) ? true : saved.includes(id);
                 html += `
@@ -131,7 +146,7 @@
         const user = document.getElementById('userSelect').value;
         const checked = Array.from(document.querySelectorAll('.c-box:checked')).map(b => b.value);
         localStorage.setItem(VERSION + '_' + user, JSON.stringify(checked));
-        alert("Saved! Ready for the next person.");
+        alert("Preferences saved!");
         window.scrollTo(0,0);
     }
 
@@ -147,7 +162,7 @@
         let cooks = {};
         let monThu = ["Monday", "Tuesday", "Wednesday", "Thursday"];
         
-        // --- 1. COOKING RULES ---
+        // --- 1. PRE-ASSIGN COOKS ---
         let sDay = monThu.find(d => isOk("Sam", d, "Cook"));
         if (sDay) cooks[sDay] = "Sam";
         let hDay = monThu.find(d => isOk("Hannah", d, "Cook") && d !== sDay);
@@ -156,57 +171,79 @@
 
         let nOut = days.filter(d => cooks[d] === "Nathan" && !isOk("Nathan", d, "Cook")).length;
 
-        // --- 2. GENERATE TABLE ---
-        let html = '<table><tr><th>Job</th><th>Who</th></tr>';
-        
-        days.forEach((day, index) => {
-            let currentDayDate = new Date(startDate);
-            currentDayDate.setDate(startDate.getDate() + index);
-            
-            // Format: DD-MMM (e.g., 09-Feb)
-            let dayPart = currentDayDate.getDate().toString().padStart(2, '0');
-            let monthPart = currentDayDate.toLocaleString('en-NZ', { month: 'short' });
-            let dateFormatted = `${dayPart}-${monthPart}`.toUpperCase();
+        // --- 2. CALCULATE FULL WEEK DATA ---
+        let weeklySchedule = {}; // Structure: { Day: { Chore: Person } }
 
-            html += `<tr><td colspan="2" class="day-head">${day.toUpperCase()} <span class="date-sub">${dateFormatted}</span></td></tr>`;
-            
+        days.forEach(day => {
+            weeklySchedule[day] = {};
             let dinnerAssignedToday = [];
+            
+            // Priority: Assign Cook
             let chef = cooks[day];
             let actualChef = "UNASSIGNED";
-            
-            if (chef === "Nathan" && nOut > 2 && !isOk("Nathan", day, "Cook")) {
-                actualChef = "TAKEOUT! 🍕";
-            } else if (isOk(chef, day, "Cook")) {
-                actualChef = chef;
-                dinnerAssignedToday.push(chef);
-            } else {
-                actualChef = users.find(u => isOk(u, day, "Cook")) || "TAKEOUT! 🍕";
-                if (actualChef !== "TAKEOUT! 🍕") dinnerAssignedToday.push(actualChef);
+            if (chef === "Nathan" && nOut > 2 && !isOk("Nathan", day, "Cook")) actualChef = "TAKEOUT!";
+            else if (isOk(chef, day, "Cook")) { actualChef = chef; dinnerAssignedToday.push(chef); }
+            else { 
+                actualChef = users.find(u => isOk(u, day, "Cook")) || "TAKEOUT!";
+                if (actualChef !== "TAKEOUT!") dinnerAssignedToday.push(actualChef);
             }
+            weeklySchedule[day]["Cook"] = actualChef;
 
-            getChores(day).forEach(chore => {
+            // Assign other chores for the day
+            getChoresForDay(day).forEach(chore => {
+                if (chore === "Cook") return;
+
                 let p = "UNASSIGNED";
+                let avail = users.filter(u => isOk(u, day, chore));
 
-                if (chore === "Cook") {
-                    p = actualChef;
-                } else {
-                    let avail = users.filter(u => isOk(u, day, chore));
-                    if (dinnerChores.includes(chore)) avail = avail.filter(u => !dinnerAssignedToday.includes(u));
-                    if (chore === "Vacuum Downstairs") avail = avail.filter(u => u === "Hannah" || u === "Sam");
-                    if (chore === "Vacuum Upstairs") avail = avail.filter(u => u === "Nathan");
+                // Constraints
+                if (dinnerChores.includes(chore)) avail = avail.filter(u => !dinnerAssignedToday.includes(u));
+                if (chore === "Vacuum Downstairs") avail = avail.filter(u => u === "Hannah" || u === "Sam");
+                if (chore === "Vacuum Upstairs") avail = avail.filter(u => u === "Nathan");
 
-                    if (avail.length > 0) {
-                        avail.sort((a,b) => tally[a] - tally[b]);
-                        p = avail[0];
-                        tally[p]++;
-                        if (dinnerChores.includes(chore)) dinnerAssignedToday.push(p);
-                    }
+                if (avail.length > 0) {
+                    avail.sort((a,b) => tally[a] - tally[b]);
+                    p = avail[0];
+                    tally[p]++;
+                    if (dinnerChores.includes(chore)) dinnerAssignedToday.push(p);
                 }
-                html += `<tr><td style="font-size: 13px; color: #666;">${chore}</td><td style="font-weight:bold; color:#4f46e5">${p}</td></tr>`;
+                weeklySchedule[day][chore] = p;
             });
         });
+
+        // --- 3. RENDER GRID TABLE ---
+        let html = '<table><thead><tr><th class="chore-col">CHORE</th>';
         
-        html += '</table>';
+        // Table Headers (Days)
+        days.forEach((day, index) => {
+            let d = new Date(startDate);
+            d.setDate(startDate.getDate() + index);
+            let dateStr = `${d.getDate().toString().padStart(2,'0')}-${d.toLocaleString('en-NZ', {month:'short'}).toUpperCase()}`;
+            html += `<th>${day}<span class="date-label">${dateStr}</span></th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        // Table Rows (Chores)
+        allUniqueChores.forEach(chore => {
+            html += `<tr><td class="chore-col">${chore}</td>`;
+            days.forEach(day => {
+                let person = weeklySchedule[day][chore];
+                let cellClass = "person-val";
+                
+                if (!person) {
+                    person = '<span class="na">-</span>';
+                } else if (person.includes('TAKEOUT')) {
+                    cellClass += " takeout";
+                } else if (person === "UNASSIGNED") {
+                    cellClass += " na";
+                }
+                
+                html += `<td><span class="${cellClass}">${person}</span></td>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
         document.getElementById('result').innerHTML = html;
         document.getElementById('result').scrollIntoView({behavior: "smooth"});
     }
